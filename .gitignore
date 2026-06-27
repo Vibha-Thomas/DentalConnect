@@ -2,6 +2,7 @@
 .idea/
 *.iml
 .vscode/
+slice2.md
 
 # Build
 target/
@@ -47,3 +48,4 @@ pgdata/
 # Logs
 *.log
 logs/
+venv/
