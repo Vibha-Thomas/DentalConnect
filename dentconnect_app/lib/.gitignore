@@ -1,0 +1,2 @@
+# Ignore Firebase Options (contains API keys/secrets)
+firebase_options.dart
