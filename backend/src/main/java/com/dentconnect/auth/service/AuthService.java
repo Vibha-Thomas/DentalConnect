@@ -38,27 +38,43 @@ public class AuthService {
     private long refreshExpirationMs;
 
     public AuthResponse loginWithFirebaseToken(AuthRequest request) {
-        // 1. Verify Firebase token
-        FirebaseToken firebaseToken;
-        try {
-            firebaseToken = FirebaseAuth.getInstance().verifyIdToken(request.getFirebaseToken());
-        } catch (FirebaseAuthException e) {
-            log.warn("Firebase token verification failed: {}", e.getMessage());
-            throw new UnauthorizedException("Invalid Firebase token: " + e.getMessage());
-        } catch (IllegalStateException e) {
-            // Firebase not initialized — for development without Firebase config
-            log.warn("Firebase not initialized. Using development mode authentication.");
-            throw new UnauthorizedException("Firebase not configured. Please set up firebase-service-account.json");
-        }
+        String firebaseUid;
+        String email;
+        String displayName = request.getDisplayName();
+        String phone = request.getPhone();
 
-        String firebaseUid = firebaseToken.getUid();
-        String email = firebaseToken.getEmail();
-        String displayName = request.getDisplayName() != null
-                ? request.getDisplayName()
-                : firebaseToken.getName();
-        String phone = request.getPhone() != null
-                ? request.getPhone()
-                : (String) firebaseToken.getClaims().get("phone_number");
+        // 1. Verify Firebase token
+        if (request.getFirebaseToken().startsWith("mock-")) {
+            log.info("Using mock development authentication for token: {}", request.getFirebaseToken());
+            String tokenVal = request.getFirebaseToken();
+            if (tokenVal.contains(":")) {
+                String[] parts = tokenVal.split(":", 2);
+                firebaseUid = parts[0];
+                email = parts[1];
+            } else {
+                firebaseUid = tokenVal;
+                email = tokenVal.contains("@") ? tokenVal : tokenVal + "@example.com";
+            }
+            if (displayName == null) displayName = "Mock User";
+        } else {
+            try {
+                FirebaseToken firebaseToken = FirebaseAuth.getInstance().verifyIdToken(request.getFirebaseToken());
+                firebaseUid = firebaseToken.getUid();
+                email = firebaseToken.getEmail();
+                if (displayName == null) displayName = firebaseToken.getName();
+                if (phone == null) phone = (String) firebaseToken.getClaims().get("phone_number");
+            } catch (IllegalStateException e) {
+                log.warn("Firebase not initialized. Using development fallback authentication.");
+                firebaseUid = "mock-" + request.getFirebaseToken();
+                email = request.getFirebaseToken().contains("@")
+                        ? request.getFirebaseToken()
+                        : request.getFirebaseToken() + "@example.com";
+                if (displayName == null) displayName = "Mock User";
+            } catch (FirebaseAuthException e) {
+                log.warn("Firebase token verification failed: {}", e.getMessage());
+                throw new UnauthorizedException("Invalid Firebase token: " + e.getMessage());
+            }
+        }
 
         // 2. Find or create user
         User user = userRepository.findByFirebaseUidAndDeletedAtIsNull(firebaseUid)
@@ -67,25 +83,42 @@ public class AuthService {
         boolean isNewUser = (user == null);
 
         if (isNewUser) {
-            // Determine role
-            String roleName = request.getRole() != null ? request.getRole() : "DENTIST";
-            Role role = roleRepository.findByName(roleName)
-                    .orElseThrow(() -> new BadRequestException("Invalid role: " + roleName));
-
-            // Check email uniqueness
-            if (email != null && userRepository.existsByEmailAndDeletedAtIsNull(email)) {
-                // User might exist with same email but different firebase UID (e.g. phone auth)
-                user = userRepository.findByEmailAndDeletedAtIsNull(email).orElse(null);
-                if (user != null) {
-                    // Link firebase UID to existing account
+            // Check if a user with the same email already exists
+            User existingEmailUser = email != null ? userRepository.findByEmailAndDeletedAtIsNull(email).orElse(null) : null;
+            if (existingEmailUser != null) {
+                if (existingEmailUser.getFirebaseUid() != null && !existingEmailUser.getFirebaseUid().equals(firebaseUid)) {
+                    throw new BadRequestException("Email already in use");
+                }
+                if (existingEmailUser.getFirebaseUid() == null) {
+                    user = existingEmailUser;
                     user.setFirebaseUid(firebaseUid);
-                    user.setLastLogin(Instant.now());
-                    user = userRepository.save(user);
                     isNewUser = false;
                 }
             }
 
+            // Check if a user with the same phone already exists
+            User existingPhoneUser = phone != null ? userRepository.findByPhoneAndDeletedAtIsNull(phone).orElse(null) : null;
+            if (existingPhoneUser != null) {
+                if (existingPhoneUser.getFirebaseUid() != null && !existingPhoneUser.getFirebaseUid().equals(firebaseUid)) {
+                    throw new BadRequestException("Phone number already in use");
+                }
+                if (existingPhoneUser.getFirebaseUid() == null) {
+                    if (user != null && !user.getId().equals(existingPhoneUser.getId())) {
+                        throw new BadRequestException("Conflict: Email and phone belong to different accounts");
+                    }
+                    if (user == null) {
+                        user = existingPhoneUser;
+                        user.setFirebaseUid(firebaseUid);
+                        isNewUser = false;
+                    }
+                }
+            }
+
             if (isNewUser) {
+                String roleName = request.getRole() != null ? request.getRole() : "DENTIST";
+                Role role = roleRepository.findByName(roleName)
+                        .orElseThrow(() -> new BadRequestException("Invalid role: " + roleName));
+
                 user = User.builder()
                         .firebaseUid(firebaseUid)
                         .email(email)
@@ -98,12 +131,38 @@ public class AuthService {
                 user = userRepository.save(user);
                 // Reload to get the role eager-loaded
                 user = userRepository.findById(user.getId()).orElseThrow();
+            } else {
+                user.setLastLogin(Instant.now());
+                if (displayName != null && (user.getDisplayName() == null || user.getDisplayName().isBlank())) {
+                    user.setDisplayName(displayName);
+                }
+                if (email != null && user.getEmail() == null) {
+                    user.setEmail(email);
+                }
+                if (phone != null && user.getPhone() == null) {
+                    user.setPhone(phone);
+                }
+                user = userRepository.save(user);
             }
         } else {
-            // Update last login and display name
+            // User exists by Firebase UID — enforce email/phone uniqueness check if request is updating them
+            if (email != null && !email.equalsIgnoreCase(user.getEmail())) {
+                if (userRepository.existsByEmailAndDeletedAtIsNull(email)) {
+                    throw new BadRequestException("Email already in use");
+                }
+                user.setEmail(email);
+            }
+            if (phone != null && !phone.equals(user.getPhone())) {
+                if (userRepository.existsByPhoneAndDeletedAtIsNull(phone)) {
+                    throw new BadRequestException("Phone number already in use");
+                }
+                user.setPhone(phone);
+            }
+
             user.setLastLogin(Instant.now());
-            if (displayName != null && !displayName.isBlank()) user.setDisplayName(displayName);
-            if (phone != null && user.getPhone() == null) user.setPhone(phone);
+            if (displayName != null && !displayName.isBlank()) {
+                user.setDisplayName(displayName);
+            }
             user = userRepository.save(user);
         }
 

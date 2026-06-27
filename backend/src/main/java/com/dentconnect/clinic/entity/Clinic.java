@@ -1,9 +1,10 @@
 package com.dentconnect.clinic.entity;
 
-import com.dentconnect.common.converter.StringListConverter;
 import com.dentconnect.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -55,11 +56,12 @@ public class Clinic extends BaseEntity {
 
     private String website;
 
-    @Convert(converter = StringListConverter.class)
-    @Column(name = "specialties")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "specialties", columnDefinition = "text[]")
     private List<String> specialties;
 
-    @Column(name = "working_hours")
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "working_hours", columnDefinition = "jsonb")
     private String workingHours;
 
     @Column(name = "chairs_count")

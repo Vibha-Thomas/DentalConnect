@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:dentconnect_app/features/auth/screens/splash_screen.dart';
+import 'package:dentconnect_app/features/auth/screens/login_screen.dart';
+import 'package:dentconnect_app/features/auth/screens/register_screen.dart';
+import 'package:dentconnect_app/features/auth/screens/role_selection_screen.dart';
+import 'package:dentconnect_app/features/auth/screens/otp_screen.dart';
 
 // Route constants
 class AppRoutes {
@@ -41,24 +46,43 @@ class AppRoutes {
 /// GoRouter provider
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: AppRoutes.login,
+    initialLocation: AppRoutes.splash,
     debugLogDiagnostics: true,
     routes: [
       // Auth routes
       GoRoute(
+        path: AppRoutes.splash,
+        name: 'splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.login,
         name: 'login',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Login'),
+        builder: (context, state) {
+          final role = state.uri.queryParameters['role'] ?? 'DENTIST';
+          return LoginScreen(role: role);
+        },
       ),
       GoRoute(
         path: AppRoutes.register,
         name: 'register',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Register'),
+        builder: (context, state) {
+          final role = state.uri.queryParameters['role'] ?? 'DENTIST';
+          return RegisterScreen(role: role);
+        },
       ),
       GoRoute(
         path: AppRoutes.roleSelection,
         name: 'roleSelection',
-        builder: (context, state) => const _PlaceholderScreen(title: 'Select Role'),
+        builder: (context, state) => const RoleSelectionScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.otp,
+        name: 'otp',
+        builder: (context, state) {
+          final role = state.uri.queryParameters['role'] ?? 'DENTIST';
+          return OtpScreen(role: role);
+        },
       ),
 
       // Dentist Shell

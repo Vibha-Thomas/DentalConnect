@@ -33,7 +33,7 @@ class AppTheme {
       centerTitle: true,
       scrolledUnderElevation: 1,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       color: Colors.white,
       shape: RoundedRectangleBorder(
@@ -128,7 +128,7 @@ class AppTheme {
       elevation: 0,
       centerTitle: true,
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       elevation: 0,
       color: cardDark,
       shape: RoundedRectangleBorder(

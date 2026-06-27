@@ -1,9 +1,10 @@
 package com.dentconnect.dentist.entity;
 
-import com.dentconnect.common.converter.StringListConverter;
 import com.dentconnect.common.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -53,12 +54,12 @@ public class DentistProfile extends BaseEntity {
 
     private String availability;
 
-    @Convert(converter = StringListConverter.class)
-    @Column(name = "preferred_cities")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "preferred_cities", columnDefinition = "text[]")
     private List<String> preferredCities;
 
-    @Convert(converter = StringListConverter.class)
-    @Column(name = "languages")
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "languages", columnDefinition = "text[]")
     private List<String> languages;
 
     @Column(name = "resume_url")
