@@ -168,7 +168,6 @@ After starting the backend, visit:
 - CORS configuration
 - Secure file uploads
 
-
 ## License
 
 Proprietary — DentConnect Team
