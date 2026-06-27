@@ -168,19 +168,6 @@ After starting the backend, visit:
 - CORS configuration
 - Secure file uploads
 
-## Environment Variables
-
-| Variable | Default | Description |
-|---|---|---|
-| DB_HOST | localhost | PostgreSQL host |
-| DB_PORT | 5432 | PostgreSQL port |
-| DB_NAME | dentconnect | Database name |
-| DB_USERNAME | dentconnect | Database user |
-| DB_PASSWORD | dentconnect | Database password |
-| JWT_SECRET | (dev key) | JWT signing secret (min 256 bits) |
-| SERVER_PORT | 8080 | API server port |
-| CORS_ORIGINS | localhost:3000,5173 | Allowed CORS origins |
-| FIREBASE_CONFIG_PATH | firebase-service-account.json | Firebase config file |
 
 ## License
 
