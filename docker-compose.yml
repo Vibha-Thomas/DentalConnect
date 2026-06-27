@@ -1,0 +1,80 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: dentconnect-db
+    environment:
+      POSTGRES_DB: dentconnect
+      POSTGRES_USER: dentconnect
+      POSTGRES_PASSWORD: dentconnect_dev_2024
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dentconnect"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - dentconnect-net
+
+  # Spring Boot Backend
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dentconnect-api
+    environment:
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: dentconnect
+      DB_USERNAME: dentconnect
+      DB_PASSWORD: dentconnect_dev_2024
+      JWT_SECRET: dentconnect-jwt-secret-key-for-development-minimum-256-bits-long-string
+      SERVER_PORT: 8080
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - dentconnect-net
+
+  # React Admin Dashboard
+  admin-dashboard:
+    build:
+      context: ./admin-dashboard
+      dockerfile: Dockerfile
+    container_name: dentconnect-admin
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - dentconnect-net
+
+  # pgAdmin (optional, for development)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: dentconnect-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@dentconnect.in
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - dentconnect-net
+    profiles:
+      - dev-tools
+
+volumes:
+  pgdata:
+    driver: local
+
+networks:
+  dentconnect-net:
+    driver: bridge

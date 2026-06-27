@@ -1,0 +1,49 @@
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Build
+target/
+build/
+*.class
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+
+# Flutter
+dentconnect_app/.dart_tool/
+dentconnect_app/.packages
+dentconnect_app/build/
+dentconnect_app/.flutter-plugins
+dentconnect_app/.flutter-plugins-dependencies
+**/ios/Pods/
+**/ios/.symlinks/
+**/.pub-cache/
+
+# Node
+node_modules/
+dist/
+.env.local
+.env.production
+
+# Firebase
+firebase-service-account.json
+google-services.json
+GoogleService-Info.plist
+
+# OS
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# Docker
+pgdata/
+
+# Environment
+.env
+*.env.local
+
+# Logs
+*.log
+logs/

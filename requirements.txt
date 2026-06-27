@@ -1,0 +1,29 @@
+# DentConnect — Python Development Tools
+# Install with: pip install -r requirements.txt
+#
+# These are optional Python utilities for the DentConnect project:
+# - Database seed script runner
+# - API testing helpers
+# - CSV/report generation scripts
+
+# HTTP client for API testing
+requests==2.32.3
+httpx==0.27.0
+
+# Environment variable management
+python-dotenv==1.0.1
+
+# Database connection (for seed scripts / admin scripts)
+psycopg2-binary==2.9.9
+SQLAlchemy==2.0.31
+
+# Data processing (for report generation)
+pandas==2.2.2
+openpyxl==3.1.4
+
+# CLI tooling
+click==8.1.7
+rich==13.7.1
+
+# JWT generation (for test token creation)
+PyJWT==2.8.0
