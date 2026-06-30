@@ -6,6 +6,9 @@ import 'package:dentconnect_app/features/auth/screens/login_screen.dart';
 import 'package:dentconnect_app/features/auth/screens/register_screen.dart';
 import 'package:dentconnect_app/features/auth/screens/role_selection_screen.dart';
 import 'package:dentconnect_app/features/auth/screens/otp_screen.dart';
+import 'package:dentconnect_app/features/dentist/screens/dentist_home_screen.dart';
+import 'package:dentconnect_app/features/dentist/screens/dentist_profile_screen.dart';
+import 'package:dentconnect_app/features/dentist/screens/onboarding/onboarding_wizard.dart';
 
 // Route constants
 class AppRoutes {
@@ -85,6 +88,13 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         },
       ),
 
+      // Dentist onboarding wizard path (standalone, no bottom navigation)
+      GoRoute(
+        path: '/dentist/onboarding',
+        name: 'dentistOnboarding',
+        builder: (context, state) => const OnboardingWizard(),
+      ),
+
       // Dentist Shell
       ShellRoute(
         builder: (context, state, child) => _BottomNavShell(
@@ -96,7 +106,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.dentistHome,
             name: 'dentistHome',
-            builder: (context, state) => const _PlaceholderScreen(title: 'Home'),
+            builder: (context, state) => const DentistHomeScreen(),
           ),
           GoRoute(
             path: AppRoutes.jobs,
@@ -111,7 +121,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: AppRoutes.dentistProfile,
             name: 'dentistProfile',
-            builder: (context, state) => const _PlaceholderScreen(title: 'Profile'),
+            builder: (context, state) => const DentistProfileScreen(),
           ),
         ],
       ),

@@ -1,8 +1,5 @@
 package com.dentconnect.dentist.dto;
 
-import com.dentconnect.dentist.entity.DentistProfile;
-import com.dentconnect.dentist.entity.Education;
-import com.dentconnect.dentist.entity.Experience;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,51 +11,86 @@ import java.util.UUID;
 @Data
 @Builder
 public class DentistProfileResponse {
+
     private UUID id;
     private UUID userId;
+
+    // ── Personal ─────────────────────────────────────────────────────────────
     private String fullName;
     private LocalDate dateOfBirth;
     private String gender;
+    private String nationality;
+    private String phone;
+    private String photoUrl;
     private String bio;
+
+    // ── Address ───────────────────────────────────────────────────────────────
+    private String address;
+    private String city;
+    private String state;
+    private String country;
+    private String pinCode;
+    private String emergencyContactName;
+    private String emergencyContactPhone;
+
+    // ── Professional ─────────────────────────────────────────────────────────
     private String regNumber;
     private String regCouncil;
+    private LocalDate regValidUntil;
     private boolean regVerified;
+    private String degree;
+    private String university;
+    private Integer graduationYear;
+    private String internshipHospital;
     private int experienceYears;
+    private Integer expectedSalary;
     private Integer salaryMin;
     private Integer salaryMax;
+
+    // ── Preferences ───────────────────────────────────────────────────────────
     private String availability;
+    private String employmentPreference;
     private List<String> preferredCities;
     private List<String> languages;
-    private String resumeUrl;
+
+    // ── Skills + Education + Experience ──────────────────────────────────────
     private List<SkillDto> skills;
     private List<EducationDto> education;
     private List<ExperienceDto> experience;
-    private Instant createdAt;
 
-    public static DentistProfileResponse from(DentistProfile p, List<Education> edList, List<Experience> exList) {
-        return DentistProfileResponse.builder()
-                .id(p.getId())
-                .userId(p.getUserId())
-                .fullName(p.getFullName())
-                .dateOfBirth(p.getDateOfBirth())
-                .gender(p.getGender())
-                .bio(p.getBio())
-                .regNumber(p.getRegNumber())
-                .regCouncil(p.getRegCouncil())
-                .regVerified(p.isRegVerified())
-                .experienceYears(p.getExperienceYears())
-                .salaryMin(p.getSalaryMin())
-                .salaryMax(p.getSalaryMax())
-                .availability(p.getAvailability())
-                .preferredCities(p.getPreferredCities())
-                .languages(p.getLanguages())
-                .resumeUrl(p.getResumeUrl())
-                .skills(p.getSkills() != null
-                        ? p.getSkills().stream().map(SkillDto::from).toList()
-                        : List.of())
-                .education(edList.stream().map(EducationDto::from).toList())
-                .experience(exList.stream().map(ExperienceDto::from).toList())
-                .createdAt(p.getCreatedAt())
-                .build();
+    // ── Documents (current versions only, no URLs) ────────────────────────────
+    private List<DocumentSummaryDto> documents;
+
+    // ── Completion (cached, read from DB) ────────────────────────────────────
+    private int profileCompletionScore;
+    private int minimumCompletionForApplication;
+    private boolean canApplyToJobs;
+
+    // ── Onboarding ────────────────────────────────────────────────────────────
+    private int onboardingStep;
+    private boolean onboardingCompleted;
+
+    // ── Verification ──────────────────────────────────────────────────────────
+    private String verificationStatus;
+
+    // ── Meta ─────────────────────────────────────────────────────────────────
+    private Instant createdAt;
+    private Instant updatedAt;
+
+    // ── Nested: document summary (no signed URL here — caller uses /documents/{id}/url) ──
+
+    @Data
+    @Builder
+    public static class DocumentSummaryDto {
+        private UUID id;
+        private String type;
+        private String name;
+        private String mimeType;
+        private Long sizeBytes;
+        private int versionNumber;
+        private boolean currentVersion;
+        private boolean approvedVersion;
+        private String verificationStatus;
+        private Instant uploadedAt;
     }
 }

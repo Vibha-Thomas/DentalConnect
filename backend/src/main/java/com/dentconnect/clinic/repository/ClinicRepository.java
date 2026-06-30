@@ -23,4 +23,7 @@ public interface ClinicRepository extends JpaRepository<Clinic, UUID> {
 
     @Query("SELECT COUNT(c) FROM Clinic c WHERE c.deletedAt IS NULL")
     long countAll();
+
+    long countByDeletedAtIsNull();
+    long countByVerificationStatusAndDeletedAtIsNull(String status);
 }

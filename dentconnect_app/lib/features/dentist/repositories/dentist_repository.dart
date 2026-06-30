@@ -1,62 +1,81 @@
-import 'dart:typed_data';
+import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dentconnect_app/core/network/api_client.dart';
 import 'package:dentconnect_app/features/dentist/models/dentist_profile.dart';
+import 'package:dentconnect_app/features/dentist/models/profile_completion.dart';
 
 class DentistRepository {
   final Dio _dio;
 
   DentistRepository(this._dio);
 
+  Future<bool> checkProfileExists() async {
+    try {
+      final response = await _dio.get('/dentists/me/exists');
+      return response.data['data']['exists'] as bool? ?? false;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<DentistProfile> getMyProfile() async {
     final response = await _dio.get('/dentists/me');
-    final data = response.data['data'] as Map<String, dynamic>;
-    return DentistProfile.fromJson(data);
+    return DentistProfile.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   Future<DentistProfile> createProfile(Map<String, dynamic> data) async {
     final response = await _dio.post('/dentists/me', data: data);
-    final responseData = response.data['data'] as Map<String, dynamic>;
-    return DentistProfile.fromJson(responseData);
+    return DentistProfile.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
   Future<DentistProfile> updateProfile(Map<String, dynamic> data) async {
     final response = await _dio.put('/dentists/me', data: data);
-    final responseData = response.data['data'] as Map<String, dynamic>;
-    return DentistProfile.fromJson(responseData);
+    return DentistProfile.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
-  Future<EducationModel> addEducation(Map<String, dynamic> data) async {
-    final response = await _dio.post('/dentists/me/education', data: data);
-    final responseData = response.data['data'] as Map<String, dynamic>;
-    return EducationModel.fromJson(responseData);
+  Future<ProfileCompletionBreakdown> getCompletionDetails() async {
+    final response = await _dio.get('/dentists/me/completion');
+    return ProfileCompletionBreakdown.fromJson(response.data['data'] as Map<String, dynamic>);
   }
 
-  Future<void> deleteEducation(String id) async {
-    await _dio.delete('/dentists/me/education/$id');
+  Future<void> saveOnboardingStep(int step) async {
+    await _dio.put('/dentists/me/onboarding-step', data: {'step': step});
   }
 
-  Future<ExperienceModel> addExperience(Map<String, dynamic> data) async {
-    final response = await _dio.post('/dentists/me/experience', data: data);
-    final responseData = response.data['data'] as Map<String, dynamic>;
-    return ExperienceModel.fromJson(responseData);
-  }
-
-  Future<void> deleteExperience(String id) async {
-    await _dio.delete('/dentists/me/experience/$id');
-  }
-
-  Future<String> uploadResume(Uint8List bytes, String filename) async {
+  Future<String> uploadProfilePhoto(File file) async {
+    final filename = file.path.split('/').last;
     final formData = FormData.fromMap({
-      'file': MultipartFile.fromBytes(bytes, filename: filename),
+      'file': await MultipartFile.fromFile(file.path, filename: filename),
     });
-    final response = await _dio.post(
-      '/storage/resume',
-      data: formData,
-      options: Options(headers: {'Content-Type': 'multipart/form-data'}),
-    );
-    return response.data['data']['url'] as String? ?? '';
+    final response = await _dio.post('/dentists/me/photo', data: formData);
+    return response.data['data']['storagePath'] as String;
+  }
+
+  Future<void> uploadDocument(File file, String docType, {String? customName}) async {
+    final filename = file.path.split('/').last;
+    final formData = FormData.fromMap({
+      'file': await MultipartFile.fromFile(file.path, filename: filename),
+      'type': docType,
+      if (customName != null) 'name': customName,
+    });
+    await _dio.post('/dentists/me/documents', data: formData);
+  }
+
+  Future<String> getDocumentSignedUrl(String documentId) async {
+    final response = await _dio.get('/dentists/me/documents/$documentId/url');
+    return response.data['data']['url'] as String;
+  }
+
+  Future<void> deleteDocument(String documentId) async {
+    await _dio.delete('/dentists/me/documents/$documentId');
+  }
+
+  Future<List<SkillModel>> getSkillsList() async {
+    final response = await _dio.get('/skills');
+    final list = response.data['data'] as List?;
+    if (list == null) return [];
+    return list.map((e) => SkillModel.fromJson(e as Map<String, dynamic>)).toList();
   }
 }
 

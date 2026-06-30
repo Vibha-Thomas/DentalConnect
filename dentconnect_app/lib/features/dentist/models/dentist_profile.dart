@@ -86,49 +86,140 @@ class ExperienceModel {
       );
 }
 
+class DocumentSummaryModel {
+  final String id;
+  final String type;
+  final String name;
+  final String? mimeType;
+  final int? sizeBytes;
+  final int versionNumber;
+  final bool currentVersion;
+  final bool approvedVersion;
+  final String verificationStatus;
+
+  const DocumentSummaryModel({
+    required this.id,
+    required this.type,
+    required this.name,
+    this.mimeType,
+    this.sizeBytes,
+    required this.versionNumber,
+    required this.currentVersion,
+    required this.approvedVersion,
+    required this.verificationStatus,
+  });
+
+  factory DocumentSummaryModel.fromJson(Map<String, dynamic> json) =>
+      DocumentSummaryModel(
+        id: json['id'] as String? ?? '',
+        type: json['type'] as String? ?? '',
+        name: json['name'] as String? ?? '',
+        mimeType: json['mimeType'] as String?,
+        sizeBytes: json['sizeBytes'] as int?,
+        versionNumber: json['versionNumber'] as int? ?? 1,
+        currentVersion: json['currentVersion'] as bool? ?? true,
+        approvedVersion: json['approvedVersion'] as bool? ?? false,
+        verificationStatus: json['verificationStatus'] as String? ?? 'PENDING',
+      );
+}
+
 class DentistProfile {
   final String id;
   final String? userId;
-  final String? fullName;
-  final String? email;
+  final String fullName;
+  final String? dateOfBirth;
+  final String? gender;
+  final String? nationality;
   final String? phone;
-  final String? profileImageUrl;
+  final String? photoUrl;
   final String? bio;
+
+  // Address
+  final String? address;
+  final String? city;
+  final String? state;
+  final String? country;
+  final String? pinCode;
+  final String? emergencyContactName;
+  final String? emergencyContactPhone;
+
+  // Professional
   final String? regNumber;
   final String? regCouncil;
-  final int? experienceYears;
-  final String? gender;
-  final double? salaryMin;
-  final double? salaryMax;
+  final String? regValidUntil;
+  final bool regVerified;
+  final String? degree;
+  final String? university;
+  final int? graduationYear;
+  final String? internshipHospital;
+  final int experienceYears;
+  final int? expectedSalary;
+  final int? salaryMin;
+  final int? salaryMax;
+
+  // Preferences
   final String? availability;
+  final String? employmentPreference;
   final List<String> preferredCities;
   final List<String> languages;
+
+  // Association collections
   final List<SkillModel> skills;
   final List<EducationModel> education;
   final List<ExperienceModel> experiences;
-  final String? resumeUrl;
+  final List<DocumentSummaryModel> documents;
+
+  // Onboarding & Scoring
+  final int onboardingStep;
+  final bool onboardingCompleted;
+  final int profileCompletionScore;
+  final int minimumCompletionForApplication;
+  final bool canApplyToJobs;
+  final String verificationStatus;
 
   const DentistProfile({
     required this.id,
     this.userId,
-    this.fullName,
-    this.email,
+    required this.fullName,
+    this.dateOfBirth,
+    this.gender,
+    this.nationality,
     this.phone,
-    this.profileImageUrl,
+    this.photoUrl,
     this.bio,
+    this.address,
+    this.city,
+    this.state,
+    this.country,
+    this.pinCode,
+    this.emergencyContactName,
+    this.emergencyContactPhone,
     this.regNumber,
     this.regCouncil,
-    this.experienceYears,
-    this.gender,
+    this.regValidUntil,
+    required this.regVerified,
+    this.degree,
+    this.university,
+    this.graduationYear,
+    this.internshipHospital,
+    required this.experienceYears,
+    this.expectedSalary,
     this.salaryMin,
     this.salaryMax,
     this.availability,
+    this.employmentPreference,
     required this.preferredCities,
     required this.languages,
     required this.skills,
     required this.education,
     required this.experiences,
-    this.resumeUrl,
+    required this.documents,
+    required this.onboardingStep,
+    required this.onboardingCompleted,
+    required this.profileCompletionScore,
+    required this.minimumCompletionForApplication,
+    required this.canApplyToJobs,
+    required this.verificationStatus,
   });
 
   factory DentistProfile.fromJson(Map<String, dynamic> json) {
@@ -150,26 +241,79 @@ class DentistProfile {
     return DentistProfile(
       id: json['id'] as String? ?? '',
       userId: json['userId'] as String?,
-      fullName: json['fullName'] as String?,
-      email: json['email'] as String?,
+      fullName: json['fullName'] as String? ?? '',
+      dateOfBirth: json['dateOfBirth'] as String?,
+      gender: json['gender'] as String?,
+      nationality: json['nationality'] as String?,
       phone: json['phone'] as String?,
-      profileImageUrl: json['profileImageUrl'] as String?,
+      photoUrl: json['photoUrl'] as String?,
       bio: json['bio'] as String?,
+      address: json['address'] as String?,
+      city: json['city'] as String?,
+      state: json['state'] as String?,
+      country: json['country'] as String?,
+      pinCode: json['pinCode'] as String?,
+      emergencyContactName: json['emergencyContactName'] as String?,
+      emergencyContactPhone: json['emergencyContactPhone'] as String?,
       regNumber: json['regNumber'] as String?,
       regCouncil: json['regCouncil'] as String?,
-      experienceYears: json['experienceYears'] as int?,
-      gender: json['gender'] as String?,
-      salaryMin: (json['salaryMin'] as num?)?.toDouble(),
-      salaryMax: (json['salaryMax'] as num?)?.toDouble(),
+      regValidUntil: json['regValidUntil'] as String?,
+      regVerified: json['regVerified'] as bool? ?? false,
+      degree: json['degree'] as String?,
+      university: json['university'] as String?,
+      graduationYear: json['graduationYear'] as int?,
+      internshipHospital: json['internshipHospital'] as String?,
+      experienceYears: json['experienceYears'] as int? ?? 0,
+      expectedSalary: json['expectedSalary'] as int?,
+      salaryMin: json['salaryMin'] as int?,
+      salaryMax: json['salaryMax'] as int?,
       availability: json['availability'] as String?,
+      employmentPreference: json['employmentPreference'] as String?,
       preferredCities: parseStringList(json['preferredCities']),
       languages: parseStringList(json['languages']),
       skills: parseList<SkillModel>(json['skills'], SkillModel.fromJson),
-      education:
-          parseList<EducationModel>(json['education'], EducationModel.fromJson),
-      experiences: parseList<ExperienceModel>(
-          json['experiences'], ExperienceModel.fromJson),
-      resumeUrl: json['resumeUrl'] as String?,
+      education: parseList<EducationModel>(json['education'], EducationModel.fromJson),
+      experiences: parseList<ExperienceModel>(json['experience'], ExperienceModel.fromJson), // mapped to backend experience field
+      documents: parseList<DocumentSummaryModel>(json['documents'], DocumentSummaryModel.fromJson),
+      onboardingStep: json['onboardingStep'] as int? ?? 0,
+      onboardingCompleted: json['onboardingCompleted'] as bool? ?? false,
+      profileCompletionScore: json['profileCompletionScore'] as int? ?? 0,
+      minimumCompletionForApplication: json['minimumCompletionForApplication'] as int? ?? 80,
+      canApplyToJobs: json['canApplyToJobs'] as bool? ?? false,
+      verificationStatus: json['verificationStatus'] as String? ?? 'PENDING',
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'fullName': fullName,
+      'dateOfBirth': dateOfBirth,
+      'gender': gender,
+      'nationality': nationality,
+      'phone': phone,
+      'bio': bio,
+      'address': address,
+      'city': city,
+      'state': state,
+      'country': country,
+      'pinCode': pinCode,
+      'emergencyContactName': emergencyContactName,
+      'emergencyContactPhone': emergencyContactPhone,
+      'regNumber': regNumber,
+      'regCouncil': regCouncil,
+      'regValidUntil': regValidUntil,
+      'degree': degree,
+      'university': university,
+      'graduationYear': graduationYear,
+      'internshipHospital': internshipHospital,
+      'experienceYears': experienceYears,
+      'expectedSalary': expectedSalary,
+      'availability': availability,
+      'employmentPreference': employmentPreference,
+      'preferredCities': preferredCities,
+      'languages': languages,
+      'skillIds': skills.map((s) => s.id).toList(),
+      'onboardingStep': onboardingStep,
+    };
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:dentconnect_app/features/auth/providers/auth_provider.dart';
+import 'package:dentconnect_app/features/dentist/repositories/dentist_repository.dart';
 
 class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
@@ -42,15 +43,21 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthState>(authProvider, (previous, next) {
+    ref.listen<AuthState>(authProvider, (previous, next) async {
       if (next.status == AuthStatus.authenticated) {
         if (next.role == 'DENTIST') {
-          context.go('/dentist');
+          final repo = ref.read(dentistRepositoryProvider);
+          final exists = await repo.checkProfileExists();
+          if (exists) {
+            if (context.mounted) context.go('/dentist');
+          } else {
+            if (context.mounted) context.go('/dentist/onboarding');
+          }
         } else {
-          context.go('/clinic');
+          if (context.mounted) context.go('/clinic');
         }
       } else if (next.status == AuthStatus.unauthenticated) {
-        context.go('/role-selection');
+        if (context.mounted) context.go('/role-selection');
       }
     });
 
